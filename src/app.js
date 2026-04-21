@@ -6,7 +6,7 @@ import { importHealthFile, aggregateHealthData, getTodayHealthData, getLast90Day
 import { BADGES, BADGE_CATEGORIES, BADGE_MAP, buildStatsSnapshot, checkBadges } from './badges.js';
 
 // ─── Data version — bump this to wipe old localStorage on next load ───
-const DATA_VERSION = 3;
+const DATA_VERSION = 5;
 
 // ─── State ───
 let state = {
@@ -260,7 +260,7 @@ function renderOdometer(containerId, value) {
 function createDigitSlot(digit, isDecimal) {
   const slot = document.createElement('span');
   slot.className = 'digit-slot' + (isDecimal ? ' decimal' : '');
-  const h = isDecimal ? 46 : 76;
+  const h = isDecimal ? 55 : 90;
 
   const reel = document.createElement('span');
   reel.className = 'digit-reel';
@@ -279,7 +279,7 @@ function createDigitSlot(digit, isDecimal) {
 function updateSlot(slot, digit) {
   const reel = slot.querySelector('.digit-reel');
   if (!reel) return;
-  const h = slot.classList.contains('decimal') ? 46 : 76;
+  const h = slot.classList.contains('decimal') ? 55 : 90;
   reel.style.transform = `translateY(-${digit * h}px)`;
 }
 

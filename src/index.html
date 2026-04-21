@@ -18,6 +18,24 @@
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+<script>
+  // INLINE — runs before any cached module. Clears demo/old data on version mismatch.
+  // Bump APP_V to force a clean wipe on all existing installs.
+  const APP_V = 5;
+  if (parseInt(localStorage.getItem('kmquest_version') || '0') < APP_V) {
+    localStorage.removeItem('kmquest_state');
+    localStorage.removeItem('kmquest_daily');
+    localStorage.setItem('kmquest_version', String(APP_V));
+  }
+  // Unregister any old service worker so new network-first SW takes over cleanly
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(regs => {
+      regs.forEach(r => r.unregister());
+    }).then(() => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+    // Reload when a new SW takes control so fresh files load immediately
+    navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
+  }
+</script>
 
 <!-- ─── Loading Screen ─── -->
 <div id="loading-screen">

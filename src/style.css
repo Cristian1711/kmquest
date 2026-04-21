@@ -150,7 +150,7 @@ input, select { font-family: inherit; }
 }
 .digit-slot {
   display: inline-block; overflow: hidden;
-  height: 76px;
+  height: 90px;
   font-family: 'Bebas Neue', sans-serif;
   font-size: 90px;
   color: var(--orange);
@@ -162,29 +162,29 @@ input, select { font-family: inherit; }
 }
 .digit-reel span {
   display: block;
-  height: 76px;
-  line-height: 76px;
+  height: 90px;
+  line-height: 90px;
 }
 .km-sep {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 60px; color: var(--orange); opacity: 0.7;
   text-shadow: 0 0 20px rgba(255,107,53,0.4);
   margin: 0 2px;
-  line-height: 76px;
+  line-height: 90px;
 }
 .digit-slot.decimal {
   font-size: 55px;
-  height: 46px;
-  margin-top: 10px;
+  height: 55px;
+  margin-top: 22px;
 }
 .digit-slot.decimal .digit-reel span {
-  height: 46px;
-  line-height: 46px;
+  height: 55px;
+  line-height: 55px;
 }
 .km-unit-label {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 26px; color: var(--orange); opacity: 0.6;
-  margin-left: 6px; align-self: flex-end; margin-bottom: 4px;
+  margin-left: 6px; align-self: flex-end; margin-bottom: 6px;
   line-height: 1;
 }
 
