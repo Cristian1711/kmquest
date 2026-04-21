@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="90" fill="#080810"/>
+  <rect width="512" height="512" rx="90" fill="url(#grad)" opacity="0.15"/>
+  <defs>
+    <radialGradient id="grad" cx="50%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#FF6B35"/>
+      <stop offset="100%" stop-color="#080810"/>
+    </radialGradient>
+  </defs>
+  <!-- Running figure (simplified) -->
+  <circle cx="256" cy="128" r="44" fill="#FF6B35"/>
+  <path d="M256 178 L230 290 L200 380" stroke="#FF6B35" stroke-width="28" stroke-linecap="round" fill="none"/>
+  <path d="M256 178 L282 290 L312 370" stroke="#FF6B35" stroke-width="28" stroke-linecap="round" fill="none"/>
+  <path d="M244 230 L190 268" stroke="#00F5FF" stroke-width="24" stroke-linecap="round" fill="none"/>
+  <path d="M262 238 L318 265" stroke="#00F5FF" stroke-width="24" stroke-linecap="round" fill="none"/>
+  <!-- KM text -->
+  <text x="256" y="468" text-anchor="middle" font-family="Arial Black, Arial" font-size="88" font-weight="900" fill="#FF6B35" letter-spacing="6">KM</text>
+</svg>

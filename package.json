@@ -1,0 +1,19 @@
+{
+  "name": "kmquest",
+  "version": "1.0.0",
+  "description": "KM Quest — fitness gamification PWA",
+  "scripts": {
+    "dev": "npx serve src -p 3000 --no-clipboard",
+    "start": "npx serve src -p 3000",
+    "build": "echo 'PWA ready in /src — no build needed'",
+    "ios": "npx cap add ios && npx cap sync ios && npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor-community/health": "^3.0.0"
+  },
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}

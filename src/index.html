@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="KM Quest">
+  <meta name="theme-color" content="#080810">
+  <meta name="description" content="Gamificación fitness — rastrea km y pasos como un videojuego épico">
+  <title>KM Quest</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icon.svg">
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<!-- ─── Loading Screen ─── -->
+<div id="loading-screen">
+  <div class="loading-logo">KM QUEST</div>
+  <div class="loading-sub">GAMIFICACIÓN FITNESS</div>
+  <div class="loading-dot-row">
+    <div class="loading-dot"></div>
+    <div class="loading-dot"></div>
+    <div class="loading-dot"></div>
+  </div>
+</div>
+
+<!-- ─── Main App ─── -->
+<div id="app">
+
+  <!-- Status Bar -->
+  <div id="status-bar">
+    <span id="status-time">9:41</span>
+    <div id="gps-recording-dot">
+      <span class="rdot"></span>
+      <span>REC</span>
+    </div>
+    <span style="font-size:11px;color:#444">KM QUEST</span>
+  </div>
+
+  <!-- Tab Container -->
+  <div id="tab-container">
+
+    <!-- ══════════════════════════════ HOME TAB ══════════════════════════════ -->
+    <div id="tab-home" class="tab-panel active">
+
+      <!-- Hero Section -->
+      <div class="hero">
+        <div class="hero-label">kilómetros totales</div>
+        <!-- Odometer — built dynamically by app.js -->
+        <div class="km-odometer" id="km-display"></div>
+
+        <!-- Steps -->
+        <div class="steps-row">
+          <span class="steps-icon">👟</span>
+          <span class="steps-display" id="steps-display">0</span>
+          <span class="steps-label">pasos totales</span>
+        </div>
+
+        <!-- Source badge -->
+        <div id="source-badge" class="source-badge" onclick="document.querySelector('[data-tab=health]').click()">
+          <span class="sync-dot"></span>
+          Cargando datos...
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Milestone Card -->
+      <div class="card">
+        <div class="milestone-header">
+          <div>
+            <div class="card-title">próximo hito</div>
+            <div class="card-name" id="milestone-name">—</div>
+          </div>
+          <div class="milestone-pct" id="milestone-pct">0%</div>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="milestone-fill" style="width:0%"></div>
+        </div>
+        <div class="milestone-remaining" id="milestone-remaining"></div>
+        <div class="milestone-fact" id="milestone-fact"></div>
+      </div>
+
+      <!-- Streak Card -->
+      <div class="card">
+        <div class="streak-card">
+          <span class="streak-fire">🔥</span>
+          <div>
+            <div class="streak-num" id="streak-num">0</div>
+            <div class="streak-label">días de racha</div>
+            <div class="streak-record" id="streak-record">récord personal: 0 días</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trophy Strip -->
+      <div class="trophy-strip">
+        <div class="strip-label">trofeos recientes</div>
+        <div class="trophy-row" id="trophy-row-home"></div>
+      </div>
+
+      <!-- Quote -->
+      <div class="quote-strip">
+        <div class="quote-text" id="quote-text">Cargando motivación...</div>
+      </div>
+
+    </div><!-- /tab-home -->
+
+
+    <!-- ══════════════════════════════ GPS TAB ══════════════════════════════ -->
+    <div id="tab-gps" class="tab-panel">
+
+      <div style="padding:14px 14px 8px">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--text)">Sesión GPS</div>
+      </div>
+
+      <!-- GPS Hero Ring -->
+      <div class="gps-hero">
+        <div class="gps-status-ring" id="gps-ring">
+          <span class="gps-km-live" id="gps-km-live">0.00</span>
+          <span class="gps-km-unit">km</span>
+          <span class="gps-timer" id="gps-timer">00:00</span>
+        </div>
+
+        <div class="gps-accuracy" id="gps-accuracy-row">
+          <span class="acc-dot good"></span>
+          <span id="gps-accuracy-text">Buscando señal GPS...</span>
+        </div>
+
+        <!-- Error message -->
+        <div id="gps-error" class="hidden" style="background:rgba(255,68,68,0.1);border:1px solid rgba(255,68,68,0.3);border-radius:12px;padding:10px 14px;font-size:12px;color:#ff6666;max-width:320px;text-align:center;line-height:1.5"></div>
+
+        <!-- Start/Stop Buttons -->
+        <button class="gps-btn start" id="gps-start-btn">▶ Iniciar GPS</button>
+        <button class="gps-btn stop hidden" id="gps-stop-btn">■ Finalizar</button>
+      </div>
+
+      <!-- Live Stats Row -->
+      <div class="gps-stats-row">
+        <div class="gps-stat">
+          <span class="gps-stat-val" id="gps-pace">--:--</span>
+          <span class="gps-stat-label">min/km</span>
+        </div>
+        <div class="gps-stat">
+          <span class="gps-stat-val" id="gps-speed">0.0</span>
+          <span class="gps-stat-label">km/h</span>
+        </div>
+        <div class="gps-stat">
+          <span class="gps-stat-val" style="color:var(--cyan)" id="gps-steps-live">—</span>
+          <span class="gps-stat-label">pasos est.</span>
+        </div>
+      </div>
+
+      <!-- GPS Path Canvas -->
+      <canvas id="gps-path-canvas" class="hidden" style="display:block;margin:10px 14px;width:calc(100% - 28px);height:160px;background:var(--surface);border-radius:14px;border:1px solid var(--border)"></canvas>
+
+      <!-- Session History -->
+      <div class="section-label">Historial de sesiones</div>
+      <div class="session-list" id="session-list">
+        <div class="empty-state">
+          <span class="empty-state-icon">📍</span>
+          <div class="empty-state-text">No hay sesiones GPS todavía.<br>Pulsa "Iniciar GPS" para empezar.</div>
+        </div>
+      </div>
+
+    </div><!-- /tab-gps -->
+
+
+    <!-- ══════════════════════════════ HEALTH TAB ══════════════════════════════ -->
+    <div id="tab-health" class="tab-panel">
+
+      <div style="padding:14px 14px 8px">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--text)">Apple Health</div>
+      </div>
+
+      <!-- Demo mode banner -->
+      <div id="demo-banner" class="demo-banner">
+        <span style="font-size:18px">ℹ️</span>
+        <span>Modo demo activo — importa tu exportación de Apple Health para ver tus datos reales</span>
+      </div>
+
+      <!-- Connection Status Card -->
+      <div class="health-connect-card">
+        <span class="health-icon">❤️</span>
+        <div class="health-connect-title">Datos de Apple Health</div>
+        <div class="health-connect-sub">
+          Exporta tus datos desde la app Salud del iPhone y cárgalos aquí para ver tu historial completo de pasos y kilómetros.
+        </div>
+        <div id="health-status" class="health-status disconnected">
+          <span>○</span> Sin datos importados
+        </div>
+        <div id="health-sync-info" style="font-size:11px;color:var(--muted);margin-top:6px"></div>
+      </div>
+
+      <!-- How to export instructions -->
+      <div class="import-section">
+        <div class="import-title">📲 Cómo importar tus datos</div>
+        <div class="import-steps">
+          <div class="import-step">
+            <div class="step-num">1</div>
+            <div>Abre la app <strong>Salud</strong> en tu iPhone</div>
+          </div>
+          <div class="import-step">
+            <div class="step-num">2</div>
+            <div>Toca tu foto de perfil (arriba a la derecha) → <strong>Exportar todos los datos</strong></div>
+          </div>
+          <div class="import-step">
+            <div class="step-num">3</div>
+            <div>Espera la exportación (puede tardar) → comparte el archivo ZIP aquí abajo</div>
+          </div>
+          <div class="import-step">
+            <div class="step-num">4</div>
+            <div>También puedes arrastrar directamente el <strong>export.xml</strong> descomprimido</div>
+          </div>
+        </div>
+
+        <button class="import-btn" id="import-health-btn">
+          <span>📂</span> Importar export.zip / export.xml
+        </button>
+        <input type="file" id="health-file-input" accept=".zip,.xml">
+
+        <!-- Progress indicator -->
+        <div class="import-progress" id="import-progress">
+          <div class="import-status-text" id="import-progress-text">Procesando...</div>
+          <div class="import-progress-bar">
+            <div class="import-progress-fill" id="import-progress-fill" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Today's Health Summary -->
+      <div class="section-label">Resumen de hoy</div>
+      <div class="health-summary-grid">
+        <div class="health-stat-card">
+          <span class="hstat-val cyan" id="hs-steps">—</span>
+          <div class="hstat-label">Pasos hoy</div>
+        </div>
+        <div class="health-stat-card">
+          <span class="hstat-val orange" id="hs-km">—</span>
+          <div class="hstat-label">km hoy</div>
+        </div>
+        <div class="health-stat-card">
+          <span class="hstat-val green" id="hs-cal">—</span>
+          <div class="hstat-label">Calorías activas</div>
+        </div>
+        <div class="health-stat-card">
+          <span class="hstat-val purple" id="hs-active">—</span>
+          <div class="hstat-label">Min. activos</div>
+        </div>
+      </div>
+
+      <!-- Manual session entry -->
+      <div class="section-label">Añadir sesión manual</div>
+      <div class="manual-add">
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <input type="number" class="km-input" id="manual-km" placeholder="km" step="0.1" min="0" max="500">
+          <input type="date" class="km-input" id="manual-date" style="flex:2">
+        </div>
+        <button class="btn btn-primary btn-block" onclick="addManualSession()">+ Añadir kilómetros</button>
+      </div>
+
+      <!-- Sync now button -->
+      <div style="padding:12px 14px">
+        <button class="btn btn-secondary btn-block" id="sync-now-btn">↻ Recalcular totales</button>
+      </div>
+
+    </div><!-- /tab-health -->
+
+
+    <!-- ══════════════════════════════ TROPHIES TAB ══════════════════════════════ -->
+    <div id="tab-trophies" class="tab-panel">
+
+      <div class="trophies-header">
+        <div class="trophies-title">Trofeos</div>
+        <div class="trophies-count" id="trophies-unlocked-count">
+          <span class="trophies-unlocked">0</span> / 0
+        </div>
+      </div>
+
+      <!-- Category filter pills -->
+      <div class="category-pills" id="category-pills"></div>
+
+      <!-- Trophies grid -->
+      <div class="trophies-grid" id="trophies-grid"></div>
+
+    </div><!-- /tab-trophies -->
+
+
+    <!-- ══════════════════════════════ STATS TAB ══════════════════════════════ -->
+    <div id="tab-stats" class="tab-panel">
+
+      <div class="stats-header">Estadísticas</div>
+
+      <!-- Source tabs -->
+      <div class="source-tabs">
+        <button class="src-tab active" data-source="combined">Combinado</button>
+        <button class="src-tab" data-source="gps">Solo GPS</button>
+        <button class="src-tab" data-source="health">Solo Health</button>
+      </div>
+
+      <!-- Today progress ring -->
+      <div class="today-ring-wrap">
+        <svg class="ring-svg" viewBox="0 0 60 60">
+          <circle class="ring-track" cx="30" cy="30" r="26"/>
+          <circle class="ring-fill" cx="30" cy="30" r="26"/>
+        </svg>
+        <div class="ring-info">
+          <div class="ring-steps" id="ring-steps">0</div>
+          <div class="ring-goal">objetivo: 10.000 pasos</div>
+          <div class="ring-pct" id="ring-pct">0% del objetivo</div>
+        </div>
+      </div>
+
+      <!-- Stats grid -->
+      <div class="stats-grid">
+        <div class="stat-card" id="stat-total-km">
+          <span class="stat-card-val orange">0.0</span>
+          <div class="stat-card-label">km totales</div>
+        </div>
+        <div class="stat-card" id="stat-total-steps">
+          <span class="stat-card-val cyan">0</span>
+          <div class="stat-card-label">pasos totales</div>
+        </div>
+        <div class="stat-card" id="stat-sessions">
+          <span class="stat-card-val green">0</span>
+          <div class="stat-card-label">sesiones GPS</div>
+        </div>
+        <div class="stat-card" id="stat-streak">
+          <span class="stat-card-val fire">0🔥</span>
+          <div class="stat-card-label">racha actual</div>
+        </div>
+        <div class="stat-card" id="stat-record-streak">
+          <span class="stat-card-val">0</span>
+          <div class="stat-card-label">racha récord</div>
+        </div>
+        <div class="stat-card" id="stat-best-session">
+          <span class="stat-card-val orange">0.0</span>
+          <div class="stat-card-label">mejor sesión</div>
+        </div>
+        <div class="stat-card" id="stat-avg-day">
+          <span class="stat-card-val orange">0.0</span>
+          <div class="stat-card-label">km/día (30d)</div>
+        </div>
+        <div class="stat-card" id="stat-week-km">
+          <span class="stat-card-val orange">0.0</span>
+          <div class="stat-card-label">km esta semana</div>
+          <div class="stat-card-sub"></div>
+        </div>
+      </div>
+
+      <!-- Weekly km chart -->
+      <div class="chart-section">
+        <div class="chart-title">km por semana (últimas 8)</div>
+        <div class="bar-chart" id="weekly-bar-chart"></div>
+      </div>
+
+      <!-- Daily steps micro chart -->
+      <div class="chart-section">
+        <div class="chart-title">pasos diarios (últimos 30 días)</div>
+        <div class="micro-chart" id="daily-steps-chart"></div>
+      </div>
+
+    </div><!-- /tab-stats -->
+
+  </div><!-- /tab-container -->
+
+  <!-- Navigation Bar -->
+  <nav id="nav-bar">
+    <div class="nav-item active" data-tab="home">
+      <span class="nav-icon">🏠</span>
+      <div class="nav-label">inicio</div>
+    </div>
+    <div class="nav-item" data-tab="gps">
+      <span class="nav-icon">📍</span>
+      <div class="nav-label">GPS</div>
+    </div>
+    <div class="nav-item" data-tab="health">
+      <span class="nav-icon">❤️</span>
+      <div class="nav-label">Health</div>
+    </div>
+    <div class="nav-item" data-tab="trophies" style="position:relative">
+      <span class="nav-icon">🏆</span>
+      <div class="nav-label">trofeos</div>
+      <div class="nav-badge hidden" id="trophies-nav-badge">0</div>
+    </div>
+    <div class="nav-item" data-tab="stats">
+      <span class="nav-icon">📊</span>
+      <div class="nav-label">stats</div>
+    </div>
+  </nav>
+
+</div><!-- /app -->
+
+<!-- ─── Confetti Canvas ─── -->
+<canvas id="confetti-canvas"></canvas>
+
+<!-- ─── Badge Unlock Overlay ─── -->
+<div id="badge-overlay">
+  <div class="badge-popup">
+    <div class="badge-popup-new">🏆 ¡Nuevo trofeo!</div>
+    <span class="badge-popup-emoji" id="badge-popup-emoji">🏅</span>
+    <div class="badge-popup-title" id="badge-popup-title">Título</div>
+    <div class="badge-popup-req" id="badge-popup-req">Requisito</div>
+    <div class="badge-popup-desc" id="badge-popup-desc">Descripción</div>
+    <button class="badge-popup-close" id="badge-overlay-close">¡Genial! 🎉</button>
+  </div>
+</div>
+
+<!-- ─── Trophy Modal ─── -->
+<div id="trophy-modal-overlay" class="trophy-modal">
+  <div class="trophy-modal-card">
+    <span class="modal-emoji" id="modal-emoji">🏅</span>
+    <div class="modal-title" id="modal-title">Título</div>
+    <div class="modal-req" id="modal-req">Requisito</div>
+    <div class="modal-desc" id="modal-desc">Descripción</div>
+    <div class="modal-unlocked" id="modal-unlocked"></div>
+    <button class="modal-close-btn" id="trophy-modal-close">Cerrar</button>
+  </div>
+</div>
+
+<!-- ─── Session Summary Overlay ─── -->
+<div id="session-summary-overlay" class="trophy-modal" style="z-index:101">
+  <div class="trophy-modal-card">
+    <div style="text-align:center;font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--orange);margin-bottom:16px">🎉 Sesión completada</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+      <div class="health-stat-card"><span class="hstat-val orange" id="ss-km">0.0</span><div class="hstat-label">km</div></div>
+      <div class="health-stat-card"><span class="hstat-val cyan" id="ss-time">00:00</span><div class="hstat-label">tiempo</div></div>
+      <div class="health-stat-card"><span class="hstat-val green" id="ss-pace">--:--</span><div class="hstat-label">min/km</div></div>
+      <div class="health-stat-card"><span class="hstat-val" id="ss-speed">0.0</span><div class="hstat-label">km/h</div></div>
+      <div class="health-stat-card"><span class="hstat-val" style="color:#c77dff" id="ss-calories">0</span><div class="hstat-label">calorías</div></div>
+      <div class="health-stat-card"><span class="hstat-val cyan" id="ss-steps">0</span><div class="hstat-label">pasos est.</div></div>
+    </div>
+    <button class="modal-close-btn" id="ss-close">Continuar</button>
+  </div>
+</div>
+
+<script>
+  // Manual session add (inline to avoid module import issues)
+  window.addManualSession = function() {
+    const km = parseFloat(document.getElementById('manual-km').value);
+    const dateVal = document.getElementById('manual-date').value;
+    if (!km || km <= 0) { alert('Introduce una distancia válida'); return; }
+    const date = dateVal || new Date().toISOString().slice(0, 10);
+    const session = {
+      id: `manual_${Date.now()}`,
+      startTime: date + 'T12:00:00.000Z',
+      endTime: date + 'T13:00:00.000Z',
+      distanceKm: km,
+      durationSec: 3600,
+      avgSpeedKmH: km,
+      avgPaceMin: 60 / km,
+      estimatedSteps: Math.round(km * 1300),
+      estimatedCalories: Math.round(km * 60),
+      continuous: false,
+      path: [],
+      isManual: true
+    };
+    // Access app state through module (handled via custom event)
+    window.dispatchEvent(new CustomEvent('kmquest:add-session', { detail: session }));
+    document.getElementById('manual-km').value = '';
+    document.getElementById('manual-date').value = '';
+  };
+</script>
+
+<script type="module" src="./app.js"></script>
+
+<script>
+  // Handle manual session event
+  window.addEventListener('kmquest:add-session', e => {
+    // Fallback if modules not loaded
+    try {
+      const saved = JSON.parse(localStorage.getItem('kmquest_state') || '{}');
+      saved.gpsSessions = [e.detail, ...(saved.gpsSessions || [])];
+      localStorage.setItem('kmquest_state', JSON.stringify(saved));
+      window.location.reload();
+    } catch(_) {}
+  });
+
+  // Set default date for manual entry
+  document.addEventListener('DOMContentLoaded', () => {
+    const dateInput = document.getElementById('manual-date');
+    if (dateInput) dateInput.value = new Date().toISOString().slice(0, 10);
+  });
+</script>
+
+</body>
+</html>
