@@ -44,17 +44,9 @@ const QUOTES = [
 document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
-  // Register Service Worker
+  // Register Service Worker (inline script already handled data version wipe)
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
-  }
-
-  // Wipe old data if version mismatch (catches demo data, old formats, etc.)
-  const storedVersion = parseInt(localStorage.getItem('kmquest_version') || '0');
-  if (storedVersion < DATA_VERSION) {
-    localStorage.removeItem('kmquest_state');
-    localStorage.removeItem('kmquest_daily');
-    localStorage.setItem('kmquest_version', DATA_VERSION);
   }
 
   loadState();
