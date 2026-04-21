@@ -1,0 +1,25 @@
+{
+  "name": "KM Quest",
+  "short_name": "KM Quest",
+  "description": "Gamificación fitness — rastrea km y pasos como un videojuego épico",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#080810",
+  "theme_color": "#080810",
+  "orientation": "portrait-primary",
+  "categories": ["fitness", "games", "health"],
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
