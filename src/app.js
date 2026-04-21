@@ -783,20 +783,62 @@ function setupStatsTab() {
   });
 }
 
-function renderStats() {
+function getStatsDataForSource() {
   loadDailyData();
-  const daily = state.health?.dailyData || {};
-  const sessions = state.gpsSessions;
+  const allDaily = state.health?.dailyData || {};
+  const allSessions = state.gpsSessions;
+
+  if (statsSource === 'gps') {
+    // Only GPS sessions — build synthetic daily from sessions
+    const gpsDaily = {};
+    allSessions.forEach(s => {
+      const d = s.startTime?.slice(0, 10);
+      if (!d) return;
+      gpsDaily[d] = gpsDaily[d] || { steps: 0, distanceKm: 0, calories: 0, activeMinutes: 0 };
+      gpsDaily[d].distanceKm += s.distanceKm || 0;
+      gpsDaily[d].steps      += s.estimatedSteps || 0;
+      gpsDaily[d].calories   += s.estimatedCalories || 0;
+      gpsDaily[d].activeMinutes += Math.round((s.durationSec || 0) / 60);
+    });
+    const totalKm    = allSessions.reduce((a, s) => a + (s.distanceKm || 0), 0);
+    const totalSteps = allSessions.reduce((a, s) => a + (s.estimatedSteps || 0), 0);
+    return { daily: gpsDaily, sessions: allSessions, totalKm, totalSteps };
+  }
+
+  if (statsSource === 'health') {
+    // Only imported Health data — no GPS sessions
+    const { totalDistanceKm: totalKm, totalSteps } = aggregateHealthData(allDaily);
+    return { daily: allDaily, sessions: [], totalKm, totalSteps };
+  }
+
+  // Combined (default)
+  return {
+    daily: allDaily,
+    sessions: allSessions,
+    totalKm: state.totals.km,
+    totalSteps: state.totals.steps
+  };
+}
+
+function renderStats() {
+  const { daily, sessions, totalKm, totalSteps } = getStatsDataForSource();
 
   const today = getTodayHealthData(daily);
   const last90 = getLast90DaysData(daily);
-  const last8Weeks = getLast8WeeksKm(daily, sessions);
+  const last8Weeks = getLast8WeeksKm(
+    daily,
+    statsSource === 'health' ? [] : sessions
+  );
 
   // Today progress ring
   const goal = state.prefs.dailyStepGoal;
-  const todaySteps = today.steps + (sessions.filter(s => s.startTime?.slice(0, 10) === new Date().toISOString().slice(0, 10))
-    .reduce((a, s) => a + (s.estimatedSteps || 0), 0));
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const gpsStepsToday = statsSource === 'health' ? 0 :
+    sessions.filter(s => s.startTime?.slice(0, 10) === todayKey)
+            .reduce((a, s) => a + (s.estimatedSteps || 0), 0);
+  const todaySteps = (statsSource === 'gps' ? 0 : today.steps) + gpsStepsToday;
   const pct = Math.min(1, todaySteps / goal);
+
   const ring = document.querySelector('.ring-fill');
   if (ring) ring.style.strokeDashoffset = 163 - (163 * pct);
   const ringSteps = document.getElementById('ring-steps');
@@ -805,35 +847,36 @@ function renderStats() {
   if (ringPct) ringPct.textContent = `${Math.round(pct * 100)}% del objetivo`;
 
   // Stat cards
-  setStatCard('stat-total-km', formatKm(state.totals.km), 'orange');
-  setStatCard('stat-total-steps', formatNumber(state.totals.steps), 'cyan');
-  setStatCard('stat-sessions', state.totals.sessions, 'green');
-  setStatCard('stat-streak', `${state.streak.current}🔥`, 'fire');
-  setStatCard('stat-record-streak', state.streak.record, null);
-  setStatCard('stat-best-session', formatKm(sessions.reduce((m, s) => Math.max(m, s.distanceKm || 0), 0)), 'orange');
+  setStatCard('stat-total-km',    formatKm(totalKm),              'orange');
+  setStatCard('stat-total-steps', formatNumber(totalSteps),        'cyan');
+  setStatCard('stat-sessions',    sessions.length,                 'green');
+  setStatCard('stat-streak',      `${state.streak.current}🔥`,    'fire');
+  setStatCard('stat-record-streak', state.streak.record,           null);
+  setStatCard('stat-best-session',
+    formatKm(sessions.reduce((m, s) => Math.max(m, s.distanceKm || 0), 0)), 'orange');
 
-  // Avg km/day (last 30)
-  const last30Km = last90.slice(-30).reduce((a, d) => a + (d.distanceKm || 0), 0);
-  const activeDays30 = last90.slice(-30).filter(d => d.distanceKm > 0 || d.steps > 0).length;
+  // Avg km/day (last 30 active days)
+  const last30 = last90.slice(-30);
+  const last30Km = last30.reduce((a, d) => a + (d.distanceKm || 0), 0);
+  const activeDays30 = last30.filter(d => d.distanceKm > 0 || d.steps > 0).length;
   setStatCard('stat-avg-day', formatKm(activeDays30 ? last30Km / activeDays30 : 0), 'orange');
 
   // This week vs last week
   const thisWeekKm = last8Weeks[7]?.km || 0;
   const lastWeekKm = last8Weeks[6]?.km || 0;
-  const weekDiff = thisWeekKm - lastWeekKm;
+  const weekDiff   = thisWeekKm - lastWeekKm;
   const weekEl = document.getElementById('stat-week-km');
   if (weekEl) {
     weekEl.querySelector('.stat-card-val').textContent = formatKm(thisWeekKm);
-    weekEl.querySelector('.stat-card-sub').innerHTML =
-      weekDiff >= 0
-        ? `<span class="green">↑ ${formatKm(weekDiff)} vs sem. pasada</span>`
-        : `<span style="color:var(--red)">↓ ${formatKm(Math.abs(weekDiff))} vs sem. pasada</span>`;
+    weekEl.querySelector('.stat-card-sub').innerHTML = lastWeekKm > 0
+      ? (weekDiff >= 0
+          ? `<span class="green">↑ ${formatKm(weekDiff)} vs sem. pasada</span>`
+          : `<span style="color:var(--red)">↓ ${formatKm(Math.abs(weekDiff))} vs sem. pasada</span>`)
+      : '<span class="muted">primera semana</span>';
   }
 
-  // Weekly bar chart
+  // Charts
   renderBarChart('weekly-bar-chart', last8Weeks, w => w.km, w => w.label, 'orange');
-
-  // Daily steps micro chart
   renderMicroChart('daily-steps-chart', last90.slice(-30), d => d.steps, goal);
 }
 
