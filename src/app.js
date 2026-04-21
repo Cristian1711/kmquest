@@ -47,6 +47,16 @@ async function init() {
   }
 
   loadState();
+
+  // Clear demo data if it was saved in a previous session
+  if (state.prefs?.isDemo) {
+    state.health = null;
+    state.prefs.isDemo = false;
+    state.totals = { km: 0, steps: 0, calories: 0, sessions: 0 };
+    localStorage.removeItem('kmquest_daily');
+    saveState();
+  }
+
   setupNavigation();
   setupGPSTab();
   setupHealthTab();
@@ -54,14 +64,6 @@ async function init() {
   setupStatsTab();
   updateClock();
   setInterval(updateClock, 30000);
-
-  // Load demo data if no health data yet
-  if (!state.health) {
-    const demo = generateDemoData();
-    state.health = demo;
-    state.prefs.isDemo = true;
-    saveState();
-  }
 
   recalculateTotals();
   updateStreak();
@@ -257,10 +259,11 @@ function renderOdometer(containerId, value) {
 function createDigitSlot(digit, isDecimal) {
   const slot = document.createElement('span');
   slot.className = 'digit-slot' + (isDecimal ? ' decimal' : '');
+  const h = isDecimal ? 46 : 76;
 
   const reel = document.createElement('span');
   reel.className = 'digit-reel';
-  reel.style.transform = `translateY(-${digit * 10}%)`;
+  reel.style.transform = `translateY(-${digit * h}px)`;
 
   for (let i = 0; i <= 9; i++) {
     const d = document.createElement('span');
@@ -274,7 +277,9 @@ function createDigitSlot(digit, isDecimal) {
 
 function updateSlot(slot, digit) {
   const reel = slot.querySelector('.digit-reel');
-  if (reel) reel.style.transform = `translateY(-${digit * 10}%)`;
+  if (!reel) return;
+  const h = slot.classList.contains('decimal') ? 46 : 76;
+  reel.style.transform = `translateY(-${digit * h}px)`;
 }
 
 function renderStepsDisplay() {
@@ -297,7 +302,7 @@ function renderSourceBadge() {
     el.innerHTML = `<span class="sync-dot"></span> Apple Health · sync ${lastSync}`;
     el.className = 'source-badge';
   } else {
-    el.innerHTML = `<span class="sync-dot"></span> Modo demo — importa datos para empezar`;
+    el.innerHTML = `<span class="sync-dot"></span> Sin datos — ve a ❤️ Health para importar`;
     el.className = 'source-badge';
   }
 }
