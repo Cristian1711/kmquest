@@ -5,6 +5,9 @@ import { GPSTracker, formatDuration, formatPace, formatDate, formatTime, drawPat
 import { importHealthFile, aggregateHealthData, getTodayHealthData, getLast90DaysData, getLast8WeeksKm, computeStreakFromHealthAndGPS, StepCounter, generateDemoData } from './health.js';
 import { BADGES, BADGE_CATEGORIES, BADGE_MAP, buildStatsSnapshot, checkBadges } from './badges.js';
 
+// ─── Data version — bump this to wipe old localStorage on next load ───
+const DATA_VERSION = 3;
+
 // ─── State ───
 let state = {
   health: null,
@@ -46,17 +49,15 @@ async function init() {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   }
 
-  loadState();
-
-  // Clear demo data if it was saved in a previous session
-  if (state.prefs?.isDemo) {
-    state.health = null;
-    state.prefs.isDemo = false;
-    state.totals = { km: 0, steps: 0, calories: 0, sessions: 0 };
+  // Wipe old data if version mismatch (catches demo data, old formats, etc.)
+  const storedVersion = parseInt(localStorage.getItem('kmquest_version') || '0');
+  if (storedVersion < DATA_VERSION) {
+    localStorage.removeItem('kmquest_state');
     localStorage.removeItem('kmquest_daily');
-    saveState();
+    localStorage.setItem('kmquest_version', DATA_VERSION);
   }
 
+  loadState();
   setupNavigation();
   setupGPSTab();
   setupHealthTab();
